@@ -1,0 +1,38 @@
+# Render Blueprint for ITWale-Notes
+# Docs: https://render.com/docs/infrastructure-as-code
+
+services:
+  - type: web
+    name: itwale-notes-backend
+    env: node
+    plan: free
+    region: oregon # change to your preferred region (e.g., frankfurt)
+    branch: main
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /health
+    autoDeploy: true
+    # Optional: limit preview deploys for PRs
+    pullRequestPreviewsEnabled: false
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      # Use your Neon pooled URL in production runtime
+      - key: DATABASE_URL
+        sync: false # set in Render Dashboard or via environment group
+      - key: CORS_ORIGIN
+        sync: false # e.g., https://<your-frontend>.vercel.app
+      - key: JWT_SECRET
+        generateValue: true
+      # If using S3/R2 for file storage, set these in the dashboard
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_REGION
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_ENDPOINT
+        sync: false # for non-AWS providers like R2/B2
