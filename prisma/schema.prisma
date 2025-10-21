@@ -1,0 +1,90 @@
+// Prisma schema for SPPU Notes Shop
+// Using SQLite for local/dev simplicity
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  role      String   @default("user") // 'user' | 'admin'
+  createdAt DateTime @default(now())
+  purchases Purchase[]
+  orders    Order[]
+}
+
+model Subject {
+  id        String   @id @default(cuid())
+  name      String
+  year      String   // SE | TE | BE
+  semester  Int // 3..8
+  units     Unit[]
+  createdAt DateTime @default(now())
+  @@index([year, semester])
+}
+
+model Unit {
+  id         String     @id @default(cuid())
+  subject    Subject    @relation(fields: [subjectId], references: [id])
+  subjectId  String
+  unitNumber Int // 1..6
+  examType   String   // INSEM | ENDSEM
+  resources  Resource[]
+  @@unique([subjectId, unitNumber])
+}
+
+model Resource {
+  id          String       @id @default(cuid())
+  unit        Unit         @relation(fields: [unitId], references: [id])
+  unitId      String
+  title       String
+  type        String       // HANDWRITTEN | QUESTION_BANK | BOOK | DECODE | PAPER | SOLUTION
+  price       Int          @default(0) // price in INR paise (e.g., 4999 = ₹49.99)
+  filePath    String?      // local path under /uploads
+  createdAt   DateTime     @default(now())
+  purchases   Purchase[]
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id          String       @id @default(cuid())
+  user        User         @relation(fields: [userId], references: [id])
+  userId      String
+  status      String       @default("PENDING") // PENDING | PAID | CANCELLED
+  amountPaise Int          @default(0)
+  upiIntent   String?
+  gateway     String       @default("PHONEPE") // PHONEPE | UPI | RAZORPAY
+  providerOrderId  String?
+  providerPaymentId String?
+  providerSignature String?
+  createdAt   DateTime     @default(now())
+  paidAt      DateTime?
+  items       OrderItem[]
+}
+
+model OrderItem {
+  id         String   @id @default(cuid())
+  order      Order    @relation(fields: [orderId], references: [id])
+  orderId    String
+  resource   Resource @relation(fields: [resourceId], references: [id])
+  resourceId String
+  pricePaise Int
+}
+
+model Purchase {
+  id         String   @id @default(cuid())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+  resource   Resource @relation(fields: [resourceId], references: [id])
+  resourceId String
+  createdAt  DateTime @default(now())
+  @@unique([userId, resourceId])
+}

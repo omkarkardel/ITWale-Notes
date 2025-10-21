@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f8fafc;
+}
+
+body { background: var(--background); }
+
+/* animations for spotlight */
+@keyframes pulse-slow {
+  0%, 100% { transform: scale(1); opacity: .65 }
+  50% { transform: scale(1.05); opacity: .9 }
+}
+@keyframes pulse-slower {
+  0%, 100% { transform: scale(1); opacity: .5 }
+  50% { transform: scale(1.08); opacity: .85 }
+}
+.animate-pulse-slow { animation: pulse-slow 6s ease-in-out infinite; }
+.animate-pulse-slower { animation: pulse-slower 9s ease-in-out infinite; }
+
+/* nicer default typography */
+.prose-muted { color: #475569 }
+

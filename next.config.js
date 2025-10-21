@@ -1,0 +1,35 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+	webpack: (config, { dev }) => {
+		// Avoid Windows rename errors in dev cache (ENOENT on .pack.gz rename)
+		if (dev) config.cache = false
+		return config
+	},
+	async headers() {
+		const isDev = process.env.NODE_ENV !== 'production'
+		const csp = [
+			"default-src 'self'",
+			"img-src 'self' data: blob:",
+			// Next.js Fast Refresh in dev may need 'unsafe-eval'
+			`script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
+			"style-src 'self' 'unsafe-inline'",
+			// HMR websockets in dev
+			`connect-src 'self'${isDev ? ' ws:' : ''}`,
+			"frame-ancestors 'none'",
+		].join('; ')
+		return [
+			{
+				source: '/(.*)',
+				headers: [
+					{ key: 'X-Frame-Options', value: 'DENY' },
+					{ key: 'X-Content-Type-Options', value: 'nosniff' },
+					{ key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+					{ key: 'Permissions-Policy', value: "geolocation=(), microphone=(), camera=()" },
+					{ key: 'Content-Security-Policy', value: csp },
+				],
+			},
+		]
+	},
+};
+
+module.exports = nextConfig;
