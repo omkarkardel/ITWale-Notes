@@ -1,4 +1,20 @@
+import 'dotenv/config'
 import { PrismaClient } from '@prisma/client'
+
+// Preflight: Ensure a valid MongoDB connection string is configured
+const dbUrl = process.env.DATABASE_URL || ''
+if (!dbUrl) {
+  console.error('DATABASE_URL is not set. Please set it in .env or the shell to a MongoDB URI (mongodb+srv://...)')
+  process.exit(1)
+}
+if (!/^mongodb(\+srv)?:\/\//i.test(dbUrl)) {
+  console.error('DATABASE_URL must start with mongodb:// or mongodb+srv://. Current value:', dbUrl)
+  process.exit(1)
+}
+if (dbUrl.includes('USER:PASSWORD') || dbUrl.includes('CLUSTER_HOST') || dbUrl.includes('dbname')) {
+  console.error('DATABASE_URL still has placeholders. Replace USER, PASSWORD, CLUSTER_HOST, and dbname with real values.')
+  process.exit(1)
+}
 const prisma = new PrismaClient()
 
 async function ensureUnitsAndBaseResources(subjectId: string, subjectName: string) {

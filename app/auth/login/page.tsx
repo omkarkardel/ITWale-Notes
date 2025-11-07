@@ -12,12 +12,14 @@ export default function LoginPage() {
     setMsg('')
   const { apiFetch } = await import('@/lib/api-client')
   const res = await apiFetch('/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }) })
-    const data = await res.json()
-    if (res.ok) {
-      setMsg('Logged in!'); window.location.href = '/'
-    } else {
-      setMsg(data.error || 'Error')
-    }
+  let data: any = null
+  try { data = await res.json() } catch { /* non-JSON or empty body */ }
+  if (res.ok) {
+    setMsg('Logged in!'); window.location.href = '/'
+  } else {
+    const fallback = typeof data === 'object' && data?.error ? data.error : `Error (${res.status})`
+    setMsg(fallback)
+  }
   }
 
   return (

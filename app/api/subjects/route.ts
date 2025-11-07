@@ -11,8 +11,7 @@ export async function GET(req: Request) {
   const where: any = {}
   if (year) where.year = year
   if (sem) where.semester = sem
-  // Prisma SQLite does not support 'mode: insensitive' on string filters in this version.
-  // Fallback: fetch and filter in memory when q provided (tiny dataset acceptable for admin search).
+  // For small datasets the in-memory filter is fine; adjust to DB-side text index if needed later.
   if (!q) {
     const subjects = await prisma.subject.findMany({ where, orderBy: { name: 'asc' }, select: { id: true, name: true, year: true, semester: true } })
     return NextResponse.json(subjects)

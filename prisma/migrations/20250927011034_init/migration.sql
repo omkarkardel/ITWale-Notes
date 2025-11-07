@@ -81,3 +81,4 @@ CREATE UNIQUE INDEX "Unit_subjectId_unitNumber_key" ON "Unit"("subjectId", "unit
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Purchase_userId_resourceId_key" ON "Purchase"("userId", "resourceId");
+-- Removed: legacy SQL migration (not used with MongoDB)

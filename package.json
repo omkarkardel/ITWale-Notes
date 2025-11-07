@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "workspaces": [
-    ".",               
+    ".",
     "backend",
     "database"
   ],
@@ -19,16 +19,17 @@
     "backend:start": "npm run start --workspace @itwale/backend",
     "db:build": "npm run build --workspace @itwale/database",
     "prisma:generate": "prisma generate",
-    "postinstall": "prisma generate --schema prisma/schema.postgres.prisma",
-    "prisma:migrate": "prisma migrate dev --name init",
-    "prisma:generate:pg": "prisma generate --schema prisma/schema.postgres.prisma",
-    "prisma:migrate:pg": "prisma migrate deploy --schema prisma/schema.postgres.prisma",
-    "prisma:dev:pg": "prisma migrate dev --name init --schema prisma/schema.postgres.prisma",
+    "postinstall": "prisma generate --schema prisma/schema.prisma",
+    "prisma:migrate": "prisma db push --schema prisma/schema.prisma",
+    "prisma:generate:pg": "echo Skipped (Postgres) && exit 0",
+    "prisma:migrate:pg": "echo Skipped (Postgres) && exit 0",
+    "prisma:dev:pg": "echo Skipped (Postgres) && exit 0",
     "seed": "tsx prisma/seed.ts",
     "db:generate": "prisma generate --schema database/prisma/schema.prisma",
-    "db:migrate:dev": "prisma migrate dev --schema database/prisma/schema.prisma",
-    "db:migrate:deploy": "prisma migrate deploy --schema database/prisma/schema.prisma",
-    "prisma:migrate:deploy:pg": "prisma migrate deploy --schema prisma/schema.postgres.prisma"
+    "db:migrate:dev": "prisma db push --schema database/prisma/schema.prisma",
+    "db:migrate:deploy": "prisma db push --schema database/prisma/schema.prisma",
+    "prisma:migrate:deploy:pg": "echo Skipped (Postgres) && exit 0",
+    "db:ping": "tsx scripts/mongo-health.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.896.0",
@@ -37,18 +38,20 @@
     "bcryptjs": "^2.4.3",
     "cookie": "^0.6.0",
     "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.20.0",
     "next": "^14.2.5",
     "nodemailer": "^6.9.15",
+    "qrcode": "^1.5.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "zod": "^3.23.8",
-    "qrcode": "^1.5.3"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.11.30",
     "@types/nodemailer": "^7.0.1",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "autoprefixer": "^10.4.19",
@@ -58,7 +61,6 @@
     "prisma": "^5.18.0",
     "tailwindcss": "^3.4.3",
     "tsx": "^4.16.2",
-    "typescript": "^5.6.2",
-    "@types/qrcode": "^1.5.5"
+    "typescript": "^5.6.2"
   }
 }

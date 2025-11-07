@@ -4,9 +4,16 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: true
+
 jobs:
-  migrate-db:
-    name: Run DB migrations
+  sync-db:
+    name: Sync DB schema (Mongo)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -20,16 +27,19 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: Run Prisma migrations (Postgres)
+      - name: Prisma generate
+        run: npx prisma generate --schema prisma/schema.prisma
+
+      - name: Push Prisma schema (Mongo)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          npx prisma migrate deploy --schema prisma/schema.postgres.prisma
+          npx prisma db push --schema prisma/schema.prisma
 
   build-and-deploy-frontend:
     name: Build & deploy Frontend (Vercel)
     runs-on: ubuntu-latest
-    needs: migrate-db
+    needs: sync-db
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,22 +52,25 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: Build
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
-        run: npm run build
-
-      - name: Deploy to Vercel
+      - name: Vercel pull (production env)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         run: |
-          npm i -g vercel
-          # Deploy prebuilt (skip interactive prompts)
-          VERCELOPTS="--token $VERCEL_TOKEN --prod --confirm"
-          npx vercel --token $VERCEL_TOKEN --prod --confirm --scope $VERCEL_ORG_ID --project $VERCEL_PROJECT_ID
+          npx vercel pull --yes --environment=production --token $VERCEL_TOKEN
+
+      - name: Vercel build
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          npx vercel build --prod --token $VERCEL_TOKEN
+
+      - name: Vercel deploy (prebuilt)
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          npx vercel deploy --prebuilt --prod --token $VERCEL_TOKEN
 
   deploy-backend:
     name: Trigger Backend Deploy (Render)

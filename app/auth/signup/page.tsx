@@ -13,12 +13,14 @@ export default function SignUpPage() {
     setMsg('')
   const { apiFetch } = await import('@/lib/api-client')
   const res = await apiFetch('/auth/signup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, name }) })
-    const data = await res.json()
-    if (res.ok) {
-      setMsg('Account created! Please login.'); window.location.href = '/auth/login'
-    } else {
-      setMsg(data.error || 'Error')
-    }
+  let data: any = null
+  try { data = await res.json() } catch { /* non-JSON or empty body */ }
+  if (res.ok) {
+    setMsg('Account created! Please login.'); window.location.href = '/auth/login'
+  } else {
+    const fallback = typeof data === 'object' && data?.error ? data.error : `Error (${res.status})`
+    setMsg(fallback)
+  }
   }
 
   return (

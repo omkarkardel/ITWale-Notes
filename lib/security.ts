@@ -1,3 +1,15 @@
+function isDevOrigin(urlStr: string): boolean {
+  try {
+    const u = new URL(urlStr)
+    const host = u.hostname
+    const isLocalhost = host === 'localhost' || host === '127.0.0.1'
+    const isPrivate10 = host.startsWith('10.')
+    const isPrivate192 = host.startsWith('192.168.')
+    const isPrivate172 = /^172\.(1[6-9]|2\d|3[0-1])\./.test(host)
+    return ['http:', 'https:'].includes(u.protocol) && (isLocalhost || isPrivate10 || isPrivate192 || isPrivate172)
+  } catch { return false }
+}
+
 export function isSameOrigin(req: Request) {
   try {
     const url = new URL(req.url)
@@ -5,6 +17,12 @@ export function isSameOrigin(req: Request) {
     const reqOrigin = req.headers.get('origin') || ''
     const referer = req.headers.get('referer') || ''
     if (!reqOrigin && !referer) return true
+
+    // In development, allow typical local/LAN origins to reduce friction
+    const isDev = process.env.NODE_ENV !== 'production'
+    if (isDev) {
+      if ((reqOrigin && isDevOrigin(reqOrigin)) || (referer && isDevOrigin(referer))) return true
+    }
 
     // Allow additional trusted origins from env (comma-separated)
     const extra = (process.env.ALLOWED_CSRF_ORIGINS || '')

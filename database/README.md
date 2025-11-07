@@ -1,18 +1,18 @@
 # @itwale/database
 
-Phase 1 extraction of the database layer. This package owns the Prisma schema and client.
+This package owns the Prisma schema and client (MongoDB only).
 
 ## Commands
 
 - npm run prisma:generate — generate Prisma client
-- npm run prisma:migrate:dev — create/apply dev migrations
-- npm run prisma:migrate:deploy — apply migrations in production
+- npm run db:migrate:dev — Prisma db push (dev)
+- npm run db:migrate:deploy — Prisma db push (prod)
 
 ## Environment
 
-- DATABASE_URL must be set (SQLite dev or Postgres in prod)
+- DATABASE_URL must be set (MongoDB Atlas URI)
 
 ## Next steps
 
-- Switch datasource to Postgres in production.
+- Schema is Prisma MongoDB provider. Use `prisma db push` to sync schema.
 - Import the client in backend (and optionally frontend server routes) from `database/src/client`.

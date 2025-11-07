@@ -3,99 +3,101 @@
 =======
 # ITWale Notes Shop (SPPU)
 
-A minimal full-stack Next.js app to sell SPPU notes and PYQs with Razorpay payments, secure file delivery, and lifetime access after payment.
-
-## Features
-
-## Setup
-
-# ITWale-Notes
-
-Full-stack notes shop for SPPU — Next.js frontend, Express backend, Prisma ORM.
+Full-stack notes shop for SPPU — Next.js App Router, Prisma ORM, and MongoDB Atlas. Manual PhonePe payments with admin “mark paid” unlock access. Secure file delivery with signed downloads.
 
 ## Monorepo layout
 
-- Frontend (Next.js) — at repo root
-- Backend (Express) — `backend/`
+- Frontend (Next.js) — repo root
+- Backend (optional Express) — `backend/` (Render blueprint included)
 - Database (Prisma schema + client) — `database/`
 
-## Deploy overview
+## Tech
 
-- Frontend → Vercel (root directory `/`)
-- Backend → Render (root directory `backend/`)
-- Database → Postgres (Neon/Supabase/Render PG) for persistence
+- Next.js 14 (App Router), React 18, Tailwind CSS
+- Prisma Client 5 (MongoDB provider)
+- JWT auth via httpOnly cookie
+- CSRF via Origin/Referer allow-list + simple rate limiting
+- Local uploads in dev; S3-compatible storage recommended in prod
 
-## Environment variables
+## Quick start (local)
 
-Common:
-- JWT_SECRET
+Prereqs: Node.js 20+, MongoDB Atlas URI
 
-Frontend (Vercel):
-- NEXT_PUBLIC_BACKEND_URL (Render backend URL)
-- ALLOWED_CSRF_ORIGINS (include your Vercel domain)
-- MERCHANT_NAME (optional)
-- SMTP/S3 vars if used by Next.js server routes
-
-Backend (Render):
-- DATABASE_URL (Postgres URL)
-- CORS_ORIGIN (your Vercel origin)
-- JWT_SECRET (same strength as frontend)
-- SMTP/S3 vars if used
-
-## Database (Production)
-
-Use Postgres for permanent storage. The `database/` package owns the Prisma schema.
-
-Migrations (from local shell):
+1) Create `.env` in repo root
 
 ```powershell
-$env:DATABASE_URL = "postgresql://USER:PASSWORD@HOST:5432/DBNAME?schema=public"
-npm run prisma:migrate:deploy:pg
+# Required
+$env:DATABASE_URL = "mongodb+srv://USER:PASS@CLUSTER/dbname?retryWrites=true&w=majority"
+$env:JWT_SECRET = "change-me"
+
+# Optional: allow extra dev origins for CSRF (comma-separated)
+$env:ALLOWED_CSRF_ORIGINS = "http://localhost:3000"
 ```
 
-Optional initial seed:
+2) Install, generate client, sync schema, and seed
 
 ```powershell
-npm run prisma:generate:pg
+npm ci
+npx prisma generate --schema prisma/schema.prisma
+npx prisma db push --schema prisma/schema.prisma
 npm run seed
 ```
 
-## Local development
+3) Run the app
 
-- Frontend: `npm run dev`
-- Backend: `npm run backend:dev`
-- Database: `npm run db:migrate:dev` (workspace: `@itwale/database`)
+```powershell
+npm run dev
+```
 
-## Notes storage
+Seed creates an admin account using env vars if present:
 
-- Development: local `uploads/`
-- Production: configure S3 in `lib/s3.ts` and set credentials in env
+- `ADMIN_EMAIL` (default: admin@example.com)
+- `ADMIN_PASSWORD` (default: admin123)
 
-## Deploy steps (high level)
+## Auth notes (important)
 
-1) Create Postgres (Neon/Supabase/Render PG) and set DATABASE_URL
-2) Deploy Backend to Render (Root: backend, Build: `npm install; npm run build`, Start: `npm run start`, Health: `/health`)
-3) Deploy Frontend to Vercel (Root: `/`, set NEXT_PUBLIC_BACKEND_URL and ALLOWED_CSRF_ORIGINS)
-4) Apply migrations (see above) and verify admin flows
-5) Point custom domains and update env/CORS/CSRF accordingly
+- Cookies: httpOnly, SameSite is dynamic
+	- Same-site (default): SameSite=Lax
+	- Cross-site (frontend and API on different domains): SameSite=None; Secure
+- CSRF: requests must come from the same origin or from an origin listed in `ALLOWED_CSRF_ORIGINS`
+- CORS: auth routes implement `OPTIONS` and echo `Access-Control-Allow-Origin` for allowed origins; credentials are enabled
+- If you deploy frontend and API on the same domain (recommended), do NOT set `NEXT_PUBLIC_BACKEND_URL` and the app will call Next.js API routes directly
+- If you deploy a separate backend domain, set:
+	- `NEXT_PUBLIC_BACKEND_URL` on the frontend (e.g., https://your-backend.onrender.com)
+	- Include the frontend origin in `ALLOWED_CSRF_ORIGINS`
+	- Ensure HTTPS everywhere (SameSite=None requires Secure)
 
-## Automatic deploy via GitHub Actions
+## Storage
 
-This repo includes a GitHub Actions workflow (`.github/workflows/deploy.yml`) that runs on push to `main` and does:
+- Dev: local `uploads/`
+- Prod: configure S3 in `lib/s3.ts` and set: `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_ENDPOINT` (optional)
 
-- Run Prisma migrations against `prisma/schema.postgres.prisma` using `DATABASE_URL` secret
-- Build the frontend and deploy to Vercel using `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID`
-- Trigger a Render backend deploy using `RENDER_API_KEY` and `RENDER_SERVICE_ID`
+## CI / Deploy
 
-Required repository secrets (Settings → Secrets → Actions):
+GitHub Actions workflow `.github/workflows/deploy.yml` runs on push to `main`:
 
-- DATABASE_URL — Postgres connection string
-- VERCEL_TOKEN — personal token from Vercel
-- VERCEL_ORG_ID — your Vercel org id
-- VERCEL_PROJECT_ID — your Vercel project id
-- NEXT_PUBLIC_BACKEND_URL — backend base URL after Render deploy
-- RENDER_API_KEY — API key from Render
-- RENDER_SERVICE_ID — Render service ID for your backend
+1) Sync DB schema (Mongo): `prisma db push` using `secrets.DATABASE_URL`
+2) Build and deploy frontend to Vercel (pull/build/deploy)
+3) Trigger backend deploy on Render (optional)
 
-After you add the secrets, pushing to `main` will run the workflow and automatically migrate the DB, deploy the frontend, and trigger a backend deploy.
-- JWT_SECRET
+Required repo secrets (Settings → Secrets → Actions):
+
+- `DATABASE_URL` — MongoDB Atlas connection string
+- `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`
+- `RENDER_API_KEY`, `RENDER_SERVICE_ID` (only if using the separate backend)
+- Optional: `NEXT_PUBLIC_BACKEND_URL` (if frontend calls separate backend)
+- `JWT_SECRET` — same across frontend/backends
+
+Render blueprint `render.yaml` is provided for `backend/` and expects `DATABASE_URL` to be set (Mongo URI).
+
+## Troubleshooting
+
+- Prisma error: “the URL must start with protocol mongo” → set `DATABASE_URL` to a MongoDB URI and re-run `npx prisma db push`.
+- Cookies not set after login on production → you’re likely on separate domains; ensure HTTPS and that `ALLOWED_CSRF_ORIGINS` includes your frontend origin. The app will set SameSite=None for cross-site responses.
+- 403 “Bad origin” on auth routes → Origin/Referer didn’t match; update `ALLOWED_CSRF_ORIGINS`.
+- Admin not visible → ensure your seeded admin email is used and role is ‘admin’ in DB.
+
+## License
+
+MIT
+2) Build and deploy the frontend to Vercel (pull/build/deploy flow)

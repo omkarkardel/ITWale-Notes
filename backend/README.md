@@ -12,7 +12,7 @@ Express API for ITWale Notes.
 
 - PORT (default 4000)
 - CORS_ORIGIN (e.g. your Vercel frontend origin)
-- DATABASE_URL (point to production Postgres for persistence)
+- DATABASE_URL (MongoDB Atlas URI)
 - JWT_SECRET (required in production)
 
 ## Deploy (Render)

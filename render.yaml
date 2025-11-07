@@ -18,7 +18,7 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 20
-      # Use your Neon pooled URL in production runtime
+  # Use your MongoDB Atlas connection string in production runtime
       - key: DATABASE_URL
         sync: false # set in Render Dashboard or via environment group
       - key: CORS_ORIGIN
