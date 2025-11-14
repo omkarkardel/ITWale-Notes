@@ -29,7 +29,8 @@
     "db:migrate:dev": "prisma db push --schema database/prisma/schema.prisma",
     "db:migrate:deploy": "prisma db push --schema database/prisma/schema.prisma",
     "prisma:migrate:deploy:pg": "echo Skipped (Postgres) && exit 0",
-    "db:ping": "tsx scripts/mongo-health.ts"
+    "db:ping": "tsx scripts/mongo-health.ts",
+    "vercel:build": "npm ci --workspaces --include-workspace-root && npm run db:build && npm run backend:build && mkdir -p api && cp -r backend/dist/api/* api/ || true"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.896.0",
