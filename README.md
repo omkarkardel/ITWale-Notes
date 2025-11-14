@@ -1,6 +1,6 @@
-<<<<<<< HEAD
+
 # ITWale-Notes
-=======
+
 # ITWale Notes Shop (SPPU)
 
 Full-stack notes shop for SPPU — Next.js App Router, Prisma ORM, and MongoDB Atlas. Manual PhonePe payments with admin “mark paid” unlock access. Secure file delivery with signed downloads.
