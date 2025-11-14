@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
-  "type": "module",
+  "type": "commonjs",
   "main": "dist/src/client.js",
   "types": "dist/src/client.d.ts",
   "scripts": {
