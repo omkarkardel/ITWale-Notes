@@ -36,6 +36,11 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
   res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' })
 })
 
-app.listen(PORT, () => {
-  console.log(`Backend listening on http://localhost:${PORT}`)
-})
+export default app
+
+// Only start listener when running as a standalone process (not as a module)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Backend listening on http://localhost:${PORT}`)
+  })
+}
