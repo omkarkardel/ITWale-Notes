@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "vercel:build": "npm --prefix .. run vercel:build"
   },
   "dependencies": {
     "@itwale/database": "file:../database",
