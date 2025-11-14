@@ -18,7 +18,7 @@ router.get('/', async (req: Request, res: Response) => {
   } else {
     const subjects = await prisma.subject.findMany({ where, orderBy: { name: 'asc' }, select: { id: true, name: true, year: true, semester: true } })
     const ql = q.toLowerCase()
-    const filtered = subjects.filter(s => s.name.toLowerCase().includes(ql))
+  const filtered = subjects.filter((s: any) => s.name.toLowerCase().includes(ql))
     return res.json(filtered)
   }
 })
