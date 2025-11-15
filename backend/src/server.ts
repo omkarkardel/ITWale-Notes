@@ -12,14 +12,24 @@ import { router as resourcesRouter } from './routes/resources'
 const app = express()
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4000
-const ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:3000'
+const ORIGINS_ENV = process.env.CORS_ORIGIN || 'http://localhost:3000'
+const ALLOWED_ORIGINS = ORIGINS_ENV.split(',').map((s) => s.trim()).filter(Boolean)
 
 // CORS (explicitly handle preflight to avoid 404 on OPTIONS)
 const corsOptions = {
-  origin: ORIGIN,
+  origin: (origin: string, callback: (err: Error | null, allow?: boolean) => void) => {
+    // No origin (e.g., curl, same-origin) => allow
+    if (!origin) return callback(null, true)
+    // If wildcard specified
+    if (ALLOWED_ORIGINS.includes('*')) return callback(null, true)
+    // Exact match against allowed list
+    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true)
+    // Not allowed
+    callback(new Error('Not allowed by CORS'))
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }
 app.use(cors(corsOptions))
 app.options('*', cors(corsOptions))
