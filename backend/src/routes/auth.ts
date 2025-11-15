@@ -20,10 +20,11 @@ router.post('/login', async (req: Request, res: Response) => {
   const ok = bcrypt.compareSync(parsed.data.password, user.password)
   if (!ok) return res.status(401).json({ error: 'Invalid credentials' })
   const token = jwt.sign({ sub: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: `${JWT_EXPIRES_IN_DAYS}d` })
+  const sameSite = (process.env.COOKIE_SAMESITE || (process.env.NODE_ENV === 'production' ? 'none' : 'lax')) as any
   res.cookie('token', token, {
     httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    sameSite, // 'none' enables cross-site cookie usage when frontend & backend are on different domains
+    secure: process.env.NODE_ENV === 'production', // required when SameSite='none'
     maxAge: JWT_EXPIRES_IN_DAYS * 24 * 60 * 60 * 1000,
     path: '/',
   })
