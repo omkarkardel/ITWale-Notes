@@ -7,19 +7,27 @@ export default function SignUpPage() {
   const [password, setPassword] = useState('')
   const [name, setName] = useState('')
   const [msg, setMsg] = useState('')
+  const [loading, setLoading] = useState(false)
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault()
     setMsg('')
-    const { apiFetch } = await import('@/lib/api-client')
-    const res = await apiFetch('/auth/signup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, name }) })
-    let data: any = null
-    try { data = await res.json() } catch { /* ignore */ }
-    if (res.ok) {
-      setMsg('Account created! Please login.'); window.location.href = '/auth/login'
-    } else {
-      const fallback = typeof data === 'object' && data?.error ? data.error : `Error (${res.status})`
-      setMsg(fallback)
+    setLoading(true)
+    try {
+      const { apiFetch } = await import('@/lib/api-client')
+      const res = await apiFetch('/auth/signup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password, name }), timeoutMs: 15000 })
+      let data: any = null
+      try { data = await res.json() } catch { /* ignore */ }
+      if (res.ok) {
+        setMsg('Account created! Please login.'); window.location.href = '/auth/login'
+      } else {
+        const fallback = typeof data === 'object' && data?.error ? data.error : `Error (${res.status})`
+        setMsg(fallback)
+      }
+    } catch (err: any) {
+      setMsg(err?.message || 'Network error. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -30,7 +38,7 @@ export default function SignUpPage() {
         <input className="w-full border px-3 py-2 rounded" placeholder="Name" value={name} onChange={e=>setName(e.target.value)} />
         <input className="w-full border px-3 py-2 rounded" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} />
         <input className="w-full border px-3 py-2 rounded" placeholder="Password" type="password" value={password} onChange={e=>setPassword(e.target.value)} />
-        <button className="px-3 py-2 bg-blue-600 text-white rounded" type="submit">Sign up</button>
+  <button className="px-3 py-2 bg-blue-600 text-white rounded disabled:opacity-50" type="submit" disabled={loading}>{loading ? 'Signing up…' : 'Sign up'}</button>
         {msg && <div className="text-sm text-red-600">{msg}</div>}
       </form>
     </main>
