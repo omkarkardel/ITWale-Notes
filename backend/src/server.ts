@@ -14,7 +14,15 @@ const app = express()
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4000
 const ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:3000'
 
-app.use(cors({ origin: ORIGIN, credentials: true }))
+// CORS (explicitly handle preflight to avoid 404 on OPTIONS)
+const corsOptions = {
+  origin: ORIGIN,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}
+app.use(cors(corsOptions))
+app.options('*', cors(corsOptions))
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
