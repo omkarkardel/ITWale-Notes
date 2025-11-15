@@ -1,7 +1,8 @@
 // Shared API client used by app pages. Adjusts path handling based on whether
 // we are calling a remote backend (NEXT_PUBLIC_BACKEND_URL set) or using local
 // Next.js route handlers under /api.
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+const RAW_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+const BACKEND_URL = RAW_BACKEND_URL ? RAW_BACKEND_URL.replace(/\/+$/, '') : ''
 
 type ApiFetchOptions = RequestInit & { timeoutMs?: number }
 

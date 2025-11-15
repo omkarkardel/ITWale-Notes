@@ -7,14 +7,23 @@ const nextConfig = {
 	},
 	async headers() {
 		const isDev = process.env.NODE_ENV !== 'production'
+		// Allow calling the external backend domain in production
+		const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
+		let backendOrigin = ''
+		try {
+			if (backendUrl) {
+				const u = new URL(backendUrl)
+				backendOrigin = `${u.protocol}//${u.host}`
+			}
+		} catch {}
 		const csp = [
 			"default-src 'self'",
 			"img-src 'self' data: blob:",
 			// Next.js Fast Refresh in dev may need 'unsafe-eval'
 			`script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
 			"style-src 'self' 'unsafe-inline'",
-			// HMR websockets in dev
-			`connect-src 'self'${isDev ? ' ws:' : ''}`,
+			// HMR websockets in dev + backend origin in prod
+			`connect-src 'self'${isDev ? ' ws:' : ''}${backendOrigin ? ' ' + backendOrigin : ''}`,
 			"frame-ancestors 'none'",
 		].join('; ')
 		return [

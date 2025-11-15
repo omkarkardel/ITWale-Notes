@@ -1,4 +1,5 @@
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+const RAW_BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
+const BACKEND_URL = RAW_BACKEND_URL ? RAW_BACKEND_URL.replace(/\/+$/, '') : ''
 
 type ApiFetchOptions = RequestInit & { timeoutMs?: number }
 
