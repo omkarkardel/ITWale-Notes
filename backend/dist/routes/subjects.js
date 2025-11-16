@@ -21,7 +21,7 @@ exports.router.get('/', async (req, res) => {
     else {
         const subjects = await database_1.prisma.subject.findMany({ where, orderBy: { name: 'asc' }, select: { id: true, name: true, year: true, semester: true } });
         const ql = q.toLowerCase();
-        const filtered = subjects.filter(s => s.name.toLowerCase().includes(ql));
+        const filtered = subjects.filter((s) => s.name.toLowerCase().includes(ql));
         return res.json(filtered);
     }
 });

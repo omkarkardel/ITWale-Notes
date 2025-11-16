@@ -15,8 +15,29 @@ const subjects_1 = require("./routes/subjects");
 const resources_1 = require("./routes/resources");
 const app = (0, express_1.default)();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
-const ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:3000';
-app.use(cors({ origin: ORIGIN, credentials: true }));
+const ORIGINS_ENV = process.env.CORS_ORIGIN || 'http://localhost:3000';
+const ALLOWED_ORIGINS = ORIGINS_ENV.split(',').map((s) => s.trim()).filter(Boolean);
+// CORS (explicitly handle preflight to avoid 404 on OPTIONS)
+const corsOptions = {
+    origin: (origin, callback) => {
+        // No origin (e.g., curl, same-origin) => allow
+        if (!origin)
+            return callback(null, true);
+        // If wildcard specified
+        if (ALLOWED_ORIGINS.includes('*'))
+            return callback(null, true);
+        // Exact match against allowed list
+        if (ALLOWED_ORIGINS.includes(origin))
+            return callback(null, true);
+        // Not allowed
+        callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+};
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express_1.default.json({ limit: '10mb' }));
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use((0, cookie_parser_1.default)());
@@ -34,6 +55,10 @@ app.use((err, _req, res, _next) => {
     console.error(err);
     res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
 });
-app.listen(PORT, () => {
-    console.log(`Backend listening on http://localhost:${PORT}`);
-});
+exports.default = app;
+// Only start listener when running as a standalone process (not as a module)
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Backend listening on http://localhost:${PORT}`);
+    });
+}
