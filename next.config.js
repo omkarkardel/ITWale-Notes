@@ -23,7 +23,7 @@ const nextConfig = {
 			`script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
 			"style-src 'self' 'unsafe-inline'",
 			// HMR websockets in dev + backend origin in prod
-			`connect-src 'self'${isDev ? ' ws:' : ''} https://it-wale-notes-backend-ytak.vercel.app`,
+			`connect-src 'self'${isDev ? ' ws:' : ''}${backendOrigin ? ' ' + backendOrigin : ''}`,
 			"frame-ancestors 'none'",
 		].join('; ')
 		return [
