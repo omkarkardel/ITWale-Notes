@@ -2,6 +2,8 @@
 
 generator client {
   provider = "prisma-client-js"
+  // Use binary engine on Windows to avoid occasional file rename EPERM issues
+  engineType = "binary"
 }
 
 datasource db {

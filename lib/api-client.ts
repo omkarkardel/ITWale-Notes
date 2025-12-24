@@ -15,7 +15,7 @@ export async function apiFetch(path: string, init?: ApiFetchOptions) {
     : (trimmed.startsWith('/api') ? trimmed : `/api${trimmed}`)
 
   const url = BACKEND_URL ? `${BACKEND_URL}${normalized}` : normalized
-  const { timeoutMs = 15000, ...rest } = init || {}
+  const { timeoutMs = 30000, ...rest } = init || {}
   const controller = new AbortController()
   const id = setTimeout(() => controller.abort(), timeoutMs)
 
@@ -29,8 +29,13 @@ export async function apiFetch(path: string, init?: ApiFetchOptions) {
     const res = await fetch(url, opts)
     return res
   } catch (err: any) {
-    if (err?.name === 'AbortError') throw new Error('Request timed out. Please try again.')
-    throw new Error(err?.message || 'Network error while contacting the server')
+    if (err?.name === 'AbortError') {
+      const body = JSON.stringify({ error: 'Request timed out. Please try again.' })
+      return new Response(body, { status: 408, headers: { 'Content-Type': 'application/json' } })
+    }
+    const message = err?.message || 'Network error while contacting the server'
+    const body = JSON.stringify({ error: message })
+    return new Response(body, { status: 503, headers: { 'Content-Type': 'application/json' } })
   } finally {
     clearTimeout(id)
   }

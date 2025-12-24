@@ -21,13 +21,11 @@ echo "Build completed"
 # Vercel looks for functions under `api/` at the project root or in
 # `.vercel/output/functions`. Copy the built backend serverless handler
 # into `api/` so Vercel will route requests to it.
-echo "Copying built serverless handler to repo-root api/ for Vercel"
+echo "Creating lightweight wrapper function at repo-root api/"
 mkdir -p api
-if [ -d "backend/dist/api" ]; then
-	# copy all built files from backend/dist/api into repo-root api/
-	cp -r backend/dist/api/* api/ || true
-elif [ -f "backend/dist/api/index.js" ]; then
-	cp backend/dist/api/index.js api/index.js || true
-fi
+cat > api/index.js <<'EOF'
+// Vercel entry that delegates to compiled backend handler without breaking relative imports
+module.exports = require('../backend/dist/api/index.js');
+EOF
 
-echo "Serverless handler staged at api/ (if build produced one)"
+echo "Serverless wrapper created at api/index.js"

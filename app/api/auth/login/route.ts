@@ -4,7 +4,6 @@ import { z } from 'zod'
 import bcrypt from 'bcryptjs'
 import { signJwt } from '@/lib/auth/jwt'
 import { serialize } from 'cookie'
-import { sendMail } from '@/lib/email'
 import { isSameOrigin, rateLimit } from '@/lib/security'
 import { buildCorsHeaders, optionsResponse } from '@/lib/cors'
 
@@ -25,6 +24,8 @@ export async function POST(req: Request) {
   try {
     user = await prisma.user.findUnique({ where: { email: parsed.data.email } })
   } catch (e) {
+    // Log the underlying DB error for troubleshooting (kept generic in response)
+    console.error('Login DB lookup failed:', e)
     return NextResponse.json({ error: 'Service temporarily unavailable. Please try again.' }, { status: 503 })
   }
   if (!user) return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
@@ -43,16 +44,7 @@ export async function POST(req: Request) {
     sameSite: (crossSite ? 'none' : 'lax') as any,
     secure: process.env.NODE_ENV === 'production' || crossSite,
   })
-  // Best-effort login notification (non-blocking)
-  ;(async () => {
-    try {
-      await sendMail({
-        to: user!.email,
-        subject: 'Login notification',
-        text: `You have successfully logged in to ${process.env.MERCHANT_NAME || 'ITWale Notes'}. If this wasn't you, please reset your password immediately.`,
-      })
-    } catch {}
-  })()
+  // Email notifications removed per request
 
   const cors = buildCorsHeaders(req)
   return new NextResponse(JSON.stringify({ ok: true }), {

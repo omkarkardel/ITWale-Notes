@@ -8,9 +8,9 @@
     "database"
   ],
   "scripts": {
-    "dev": "next dev",
+    "dev": "cross-env NODE_OPTIONS=--tls-min-v1.2 next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "cross-env NODE_OPTIONS=--tls-min-v1.2 next start",
     "frontend:dev": "npm run dev --workspace .",
     "frontend:build": "npm run build --workspace .",
     "frontend:start": "npm run start --workspace .",
@@ -29,13 +29,12 @@
     "db:migrate:dev": "prisma db push --schema database/prisma/schema.prisma",
     "db:migrate:deploy": "prisma db push --schema database/prisma/schema.prisma",
     "prisma:migrate:deploy:pg": "echo Skipped (Postgres) && exit 0",
-    "db:ping": "tsx scripts/mongo-health.ts",
-    "vercel:build": "npm ci --workspaces --include-workspace-root && npm run db:build && npm run backend:build && mkdir -p api && cp -r backend/dist/api/* api/ || true"
+    "db:ping": "cross-env NODE_OPTIONS=--tls-min-v1.2 tsx scripts/mongo-health.ts",
+    "vercel:build": "npm ci --workspaces --include-workspace-root && npm run db:build && npm run backend:build && node -e \"require('fs').mkdirSync('api',{recursive:true});require('fs').writeFileSync('api/index.js',\"module.exports = require('../backend/dist/api/index.js');\\n\")\""
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.896.0",
     "@aws-sdk/s3-request-presigner": "^3.896.0",
-    "@prisma/client": "^5.18.0",
     "bcryptjs": "^2.4.3",
     "cookie": "^0.6.0",
     "jsonwebtoken": "^9.0.2",
@@ -48,6 +47,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/node": "^20.11.30",
@@ -59,7 +59,6 @@
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.5",
     "postcss": "^8.4.38",
-    "prisma": "^5.18.0",
     "tailwindcss": "^3.4.3",
     "tsx": "^4.16.2",
     "typescript": "^5.6.2"

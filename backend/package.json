@@ -12,6 +12,7 @@
   "dependencies": {
     "@itwale/database": "file:../database",
     "bcryptjs": "^2.4.3",
+    "nodemailer": "^6.9.15",
   "serverless-http": "^2.1.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
@@ -22,6 +23,7 @@
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/nodemailer": "^7.0.1",
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.19",
     "@types/express": "^4.17.21",

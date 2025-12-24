@@ -30,10 +30,12 @@ export async function apiFetch(path: string, init?: ApiFetchOptions) {
     return res
   } catch (err: any) {
     if (err?.name === 'AbortError') {
-      throw new Error('Request timed out. Please try again.')
+      const body = JSON.stringify({ error: 'Request timed out. Please try again.' })
+      return new Response(body, { status: 408, headers: { 'Content-Type': 'application/json' } })
     }
-    // Likely CORS/network/DNS error
-    throw new Error(err?.message || 'Network error while contacting the server')
+    const message = err?.message || 'Network error while contacting the server'
+    const body = JSON.stringify({ error: message })
+    return new Response(body, { status: 503, headers: { 'Content-Type': 'application/json' } })
   } finally {
     clearTimeout(id)
   }
