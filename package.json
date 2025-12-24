@@ -30,7 +30,7 @@
     "db:migrate:deploy": "prisma db push --schema database/prisma/schema.prisma",
     "prisma:migrate:deploy:pg": "echo Skipped (Postgres) && exit 0",
     "db:ping": "cross-env NODE_OPTIONS=--tls-min-v1.2 tsx scripts/mongo-health.ts",
-    "vercel:build": "npm ci --workspaces --include-workspace-root && npm run db:build && npm run backend:build && node -e \"require('fs').mkdirSync('api',{recursive:true});require('fs').writeFileSync('api/index.js',\"module.exports = require('../backend/dist/api/index.js');\\n\")\""
+    "vercel:build": "npm ci --workspaces --include-workspace-root && npm run db:build && npm run backend:build && node scripts/create-vercel-wrapper.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.896.0",
